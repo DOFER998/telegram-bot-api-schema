@@ -472,7 +472,11 @@ flowchart LR
 ```
 
 `main` is what the raw URLs serve and is protected: it takes pull requests only,
-with `check` and `openapi` green. `dev` is where the nightly work lands first.
+with `check` and `openapi` green, and the rule applies to admins too. `dev` is
+where the nightly work lands first.
+
+The nightly job pushes its branch with a repository deploy key rather than the
+default token, so the pull request it opens runs the checks like any other.
 
 ```mermaid
 flowchart LR

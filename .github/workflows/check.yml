@@ -2,7 +2,7 @@ name: check
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, 'update/**']
   pull_request:
     branches: [main, dev]
 

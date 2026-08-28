@@ -22,10 +22,14 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
+      # Checked out over SSH with a deploy key so the branch is pushed by
+      # something other than GITHUB_TOKEN. A push by GITHUB_TOKEN triggers no
+      # workflows, which is what would leave the pull request without checks.
       - uses: actions/checkout@v7
         with:
           ref: ${{ env.BASE_BRANCH }}
           fetch-depth: 0
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - uses: oven-sh/setup-bun@v2.2.0
         with:
@@ -49,8 +53,8 @@ jobs:
             echo "moved=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # A pull request opened with the default token does not trigger workflows,
-      # so without PR_TOKEN these runs are the only verification there is.
+      # `check` runs on the pull request too. These run first so a failure is
+      # caught before a pull request exists at all.
       - if: steps.changed.outputs.moved == 'true'
         run: bun run lint
 
@@ -63,8 +67,6 @@ jobs:
       - if: steps.changed.outputs.moved == 'true'
         run: bun run check
 
-      # A pull request opened with GITHUB_TOKEN shows no check runs, so the
-      # report says which ones passed here and links the run that proves it.
       - name: Record what was verified
         if: steps.changed.outputs.moved == 'true'
         run: |
@@ -89,7 +91,6 @@ jobs:
         if: steps.changed.outputs.moved == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
-          token: ${{ secrets.PR_TOKEN || github.token }}
           base: ${{ env.BASE_BRANCH }}
           branch: update/bot-api-${{ steps.changed.outputs.version }}
           title: 'Bot API ${{ steps.changed.outputs.version }}'
