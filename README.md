@@ -4,9 +4,11 @@ The complete Telegram Bot API, as machine-readable data. Not just the tables of
 types and methods — also the escaping rules, the limits, the constraints and the
 conventions that every library otherwise hard-codes by hand.
 
-[![Bot API](https://img.shields.io/badge/Bot%20API-10.3-2AABEE)](https://core.telegram.org/bots/api)
-[![Updated](https://img.shields.io/badge/updated-2026--08--24-informational)](https://core.telegram.org/bots/api#august-24-2026)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![check](https://github.com/DOFER998/telegram-bot-api-schema/actions/workflows/check.yml/badge.svg?branch=main)](https://github.com/DOFER998/telegram-bot-api-schema/actions/workflows/check.yml)
+[![release](https://img.shields.io/github/v/release/DOFER998/telegram-bot-api-schema?label=release&color=blue)](https://github.com/DOFER998/telegram-bot-api-schema/releases/latest)
+[![Bot API](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fraw.githubusercontent.com%2FDOFER998%2Ftelegram-bot-api-schema%2Fmain%2FVERSION&search=BOT_API_VERSION%3D%28.%2A%29&replace=%241&label=Bot%20API&color=2AABEE)](https://core.telegram.org/bots/api)
+[![released](https://img.shields.io/github/release-date/DOFER998/telegram-bot-api-schema?label=released)](https://github.com/DOFER998/telegram-bot-api-schema/releases)
+[![license](https://img.shields.io/github/license/DOFER998/telegram-bot-api-schema)](LICENSE)
 
 ```
 https://raw.githubusercontent.com/DOFER998/telegram-bot-api-schema/main/spec.json
