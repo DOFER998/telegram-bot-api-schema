@@ -63,6 +63,28 @@ jobs:
       - if: steps.changed.outputs.moved == 'true'
         run: bun run check
 
+      # A pull request opened with GITHUB_TOKEN shows no check runs, so the
+      # report says which ones passed here and links the run that proves it.
+      - name: Record what was verified
+        if: steps.changed.outputs.moved == 'true'
+        run: |
+          {
+            echo
+            echo '---'
+            echo
+            echo '### Verified before this pull request was opened'
+            echo
+            echo '| Check | |'
+            echo '| --- | --- |'
+            echo '| `scrape:verify` | one download, two parses, byte-identical |'
+            echo '| `lint` | Biome, no errors |'
+            echo '| `typecheck` | tsc --noEmit clean |'
+            echo '| `build:verify` | one scrape, two builds, byte-identical |'
+            echo '| `check` | schema, internal references, OpenAPI 3.1, published URLs |'
+            echo
+            echo "[Run ${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          } >> "$RUNNER_TEMP/report.md"
+
       - name: Open a pull request against ${{ env.BASE_BRANCH }}
         if: steps.changed.outputs.moved == 'true'
         uses: peter-evans/create-pull-request@v8

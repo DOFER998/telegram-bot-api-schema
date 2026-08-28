@@ -463,6 +463,19 @@ Telegram's own release notes.
 
 ```mermaid
 flowchart LR
+  T["core.telegram.org"] -->|nightly| U{{update}}
+  U -->|nothing moved| Q["exit quietly"]
+  U -->|moved| PR["pull request → dev"]
+  PR --> D["dev"]
+  D -->|promote| M["main"]
+  M -->|tag vX.Y.Z| R["release"]
+```
+
+`main` is what the raw URLs serve and is protected: it takes pull requests only,
+with `check` and `openapi` green. `dev` is where the nightly work lands first.
+
+```mermaid
+flowchart LR
   P["core.telegram.org/bots/api"] -->|scrape| S["data/scrape.json"]
   D["data/declarations/<br/>data/enums/"] --> B
   S -->|build| B{{build}}
