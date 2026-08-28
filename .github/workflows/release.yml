@@ -1,14 +1,11 @@
 name: release
 
 # Tag is v<major>.<minor>.<patch>: major and minor from VERSION, patch ours.
+# No `paths` filter: it does not fire when a branch is created, and the
+# already-tagged check below is what makes a no-op run cheap.
 on:
   push:
     branches: [main]
-    paths:
-      - spec.json
-      - openapi.json
-      - schema.json
-      - VERSION
   workflow_dispatch:
 
 permissions:
