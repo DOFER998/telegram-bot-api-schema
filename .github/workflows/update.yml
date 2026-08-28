@@ -1,0 +1,80 @@
+name: update
+
+# Telegram ships Bot API releases with no machine-readable announcement, so the
+# only way to notice one is to diff the page every night.
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update
+  cancel-in-progress: false
+
+env:
+  BASE_BRANCH: dev
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.BASE_BRANCH }}
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version-file: package.json
+
+      - run: bun install --frozen-lockfile
+
+      # A non-deterministic parse would open a pull request every night.
+      - run: bun run scrape:verify
+
+      - name: Scrape, build, diff against what is committed
+        run: bun run update --report "$RUNNER_TEMP/report.md"
+
+      - name: Did anything move
+        id: changed
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "moved=true" >> "$GITHUB_OUTPUT"
+            echo "version=$(sed -n 's/^BOT_API_VERSION=//p' VERSION)" >> "$GITHUB_OUTPUT"
+          else
+            echo "moved=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # A pull request opened with the default token does not trigger workflows,
+      # so without PR_TOKEN these runs are the only verification there is.
+      - if: steps.changed.outputs.moved == 'true'
+        run: bun run lint
+
+      - if: steps.changed.outputs.moved == 'true'
+        run: bun run typecheck
+
+      - if: steps.changed.outputs.moved == 'true'
+        run: bun run build:verify
+
+      - if: steps.changed.outputs.moved == 'true'
+        run: bun run check
+
+      - name: Open a pull request against ${{ env.BASE_BRANCH }}
+        if: steps.changed.outputs.moved == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.PR_TOKEN || github.token }}
+          base: ${{ env.BASE_BRANCH }}
+          branch: update/bot-api-${{ steps.changed.outputs.version }}
+          title: 'Bot API ${{ steps.changed.outputs.version }}'
+          body-path: ${{ runner.temp }}/report.md
+          commit-message: |
+            feat: Bot API ${{ steps.changed.outputs.version }}
+
+            Rebuilt from the documentation page by the nightly job.
+          labels: bot-api
+          delete-branch: true

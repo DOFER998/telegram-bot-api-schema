@@ -1,0 +1,85 @@
+name: release
+
+# Tag is v<major>.<minor>.<patch>: major and minor from VERSION, patch ours.
+on:
+  push:
+    branches: [main]
+    paths:
+      - spec.json
+      - openapi.json
+      - schema.json
+      - VERSION
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version-file: package.json
+
+      - run: bun install --frozen-lockfile
+
+      - name: Confirm the artefacts are what the inputs build
+        run: |
+          bun run build
+          if [ -n "$(git status --porcelain spec.json openapi.json VERSION)" ]; then
+            echo "::error::main holds artefacts that are not what its inputs build. Not tagging."
+            exit 1
+          fi
+          bun run check
+
+      - name: Work out the tag
+        id: tag
+        run: |
+          version="$(sed -n 's/^BOT_API_VERSION=//p' VERSION)"
+          git fetch --tags --force
+
+          # `[0-9][0-9]*`, not `[0-9]\+` — the latter is a GNU extension.
+          highest=$(git tag --list "v${version}.*" \
+            | sed -n "s/^v${version}\.\([0-9][0-9]*\)$/\1/p" \
+            | sort -n | tail -1)
+          if [ -z "$highest" ]; then patch=0; else patch=$((highest + 1)); fi
+
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "name=v${version}.${patch}" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if this commit is already tagged
+        id: existing
+        run: |
+          if [ -n "$(git tag --points-at HEAD)" ]; then
+            echo "::notice::$(git tag --points-at HEAD | tr '\n' ' ') already points at this commit"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Write the release notes
+        if: steps.existing.outputs.skip == 'false'
+        run: bun run release-notes --tag "${{ steps.tag.outputs.name }}" > "$RUNNER_TEMP/notes.md"
+
+      - name: Tag and release
+        if: steps.existing.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.name }}
+        run: |
+          git -c user.name=github-actions -c user.email=github-actions@github.com \
+            tag -a "$TAG" -m "Bot API ${{ steps.tag.outputs.version }}"
+          git push origin "$TAG"
+          gh release create "$TAG" \
+            --title "Bot API ${{ steps.tag.outputs.version }}" \
+            --notes-file "$RUNNER_TEMP/notes.md" \
+            spec.json openapi.json schema.json VERSION

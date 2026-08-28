@@ -1,0 +1,34 @@
+{
+  "name": "telegram-bot-api-schema",
+  "private": true,
+  "description": "The complete machine-readable Telegram Bot API specification. Consumed by raw URL, never published to a registry.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "bun": ">=1.4.0"
+  },
+  "imports": {
+    "#kit": "./src/kit/index.ts"
+  },
+  "scripts": {
+    "scrape": "bun src/commands/scrape.ts",
+    "scrape:verify": "bun src/commands/scrape-verify.ts",
+    "build": "bun src/commands/build.ts",
+    "build:verify": "bun src/commands/build-verify.ts",
+    "check": "bun src/commands/check.ts",
+    "update": "bun src/commands/update.ts",
+    "release-notes": "bun src/commands/release-notes.ts",
+    "lint": "biome check src schema.config.ts",
+    "format": "biome check --write src schema.config.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.11",
+    "@seriousme/openapi-schema-validator": "^2.9.1",
+    "@types/node": "^24.10.1",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "parse5": "^8.0.1",
+    "typescript": "^6.0.3"
+  }
+}

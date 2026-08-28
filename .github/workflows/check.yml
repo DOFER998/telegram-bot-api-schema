@@ -1,0 +1,66 @@
+name: check
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun run build:verify
+
+      # The committed artefacts must be what the committed inputs produce.
+      - name: Rebuild and diff
+        run: |
+          bun run build
+          if [ -n "$(git status --porcelain spec.json openapi.json VERSION)" ]; then
+            echo "::error::Committed artefacts are stale. Run: bun run build"
+            git --no-pager diff --stat spec.json openapi.json VERSION
+            exit 1
+          fi
+
+      - run: bun run check
+
+  # Second opinion from the toolchain consumers actually point at openapi.json.
+  openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/cache@v6
+        id: generator
+        with:
+          path: openapi-generator-cli.jar
+          key: openapi-generator-7.25.0
+
+      - if: steps.generator.outputs.cache-hit != 'true'
+        run: >
+          curl -sSLf -o openapi-generator-cli.jar
+          https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.25.0/openapi-generator-cli-7.25.0.jar
+
+      - name: Validate openapi.json
+        run: |
+          java -jar openapi-generator-cli.jar validate -i openapi.json 2>&1 | tee validate.log
+          grep -qiE '^Errors:' validate.log && { echo "::error::openapi-generator reported errors"; exit 1; } || true

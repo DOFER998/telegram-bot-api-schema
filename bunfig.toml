@@ -1,0 +1,4 @@
+[install]
+# Text lockfile, not the binary bun.lockb: the whole point of this repository is
+# tracking what changed, and a binary lockfile is unreadable in a diff.
+saveTextLockfile = true

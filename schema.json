@@ -1,0 +1,1822 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/DOFER998/telegram-bot-api-schema/main/schema.json",
+  "title": "telegram-bot-api-schema",
+  "description": "Format of spec.json: the complete machine-readable Telegram Bot API specification, including everything the documentation states outside the tables of types and methods.",
+  "type": "object",
+  "required": [
+    "spec_format",
+    "version",
+    "release_date",
+    "source",
+    "types",
+    "methods",
+    "enums",
+    "fields",
+    "document",
+    "changelog"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "spec_format": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Version of this format, raised when a change would break a consumer."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+(\\.\\d+)*$",
+      "description": "Bot API version, for example 10.3."
+    },
+    "release_date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "source": {
+      "type": "string",
+      "format": "uri",
+      "description": "The documentation page everything here was read from."
+    },
+    "types": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/type"
+      }
+    },
+    "methods": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/method"
+      }
+    },
+    "enums": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/enum"
+      }
+    },
+    "fields": {
+      "type": "object",
+      "description": "What the prose of a field states beyond its name, type and description. Keyed by Entity.field. A field with nothing to state is absent.",
+      "propertyNames": {
+        "pattern": "^[A-Za-z][A-Za-z0-9]*\\.[a-z_][a-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/fieldFacts"
+      }
+    },
+    "document": {
+      "$ref": "#/$defs/document"
+    },
+    "changelog": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/changelogEntry"
+      }
+    }
+  },
+  "$defs": {
+    "field": {
+      "type": "object",
+      "description": "A field of a type or a parameter of a method, shaped as published specifications shape it.",
+      "required": [
+        "name",
+        "types",
+        "required",
+        "description",
+        "html_description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "types": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "description": "Types in the vocabulary of the documentation: Integer, Array of Message."
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "html_description": {
+          "type": "string",
+          "description": "The description as markup. Values marked up with emphasis survive only here."
+        }
+      }
+    },
+    "note": {
+      "type": "object",
+      "description": "Prose attached to an entity but sitting outside its table.",
+      "required": [
+        "position",
+        "tag",
+        "text",
+        "html"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "enum": [
+            "before_table",
+            "after_table"
+          ]
+        },
+        "tag": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "html": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The items, where the documentation numbers the note by hand."
+        }
+      }
+    },
+    "type": {
+      "type": "object",
+      "required": [
+        "name",
+        "href",
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/field"
+          }
+        },
+        "subtypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Types this one stands for."
+        },
+        "subtype_of": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Abstract types this one is a case of. Derived: the documentation states the relation only downwards."
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/note"
+          }
+        }
+      }
+    },
+    "method": {
+      "type": "object",
+      "required": [
+        "name",
+        "href",
+        "description",
+        "returns"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string",
+          "format": "uri"
+        },
+        "description": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "returns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/field"
+          },
+          "description": "Parameters, named fields for compatibility with published specifications."
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/note"
+          }
+        }
+      }
+    },
+    "enum": {
+      "type": "object",
+      "required": [
+        "name",
+        "description",
+        "values",
+        "members"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string",
+          "format": "uri"
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          },
+          "description": "Values on the wire, in documentation order."
+        },
+        "applies_to": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Members typed by this enum, written Entity.field."
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "An identifier-safe name for each value, aligned with values. Six dice emoji contain no character an identifier may hold, so no consumer could derive these."
+        }
+      }
+    },
+    "fieldFacts": {
+      "type": "object",
+      "required": [
+        "entity",
+        "field",
+        "on"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "entity": {
+          "type": "string"
+        },
+        "field": {
+          "type": "string"
+        },
+        "on": {
+          "enum": [
+            "type",
+            "method"
+          ]
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "min_length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "min_items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "default": {
+          "description": "The value used when the field is omitted.",
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "array"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "default_type": {
+          "type": "string",
+          "description": "Name of the type the default is an instance of, where the documentation names one instead of a value."
+        },
+        "alphabet": {
+          "type": "object",
+          "description": "Characters the value is restricted to.",
+          "required": [
+            "ranges",
+            "characters"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "ranges": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^.-.$"
+              }
+            },
+            "characters": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1
+              }
+            }
+          }
+        },
+        "one_of": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "string"
+          },
+          "description": "Values the documentation enumerates in quotation marks."
+        },
+        "constant": {
+          "type": "object",
+          "description": "A value the documentation pins down rather than describes.",
+          "required": [
+            "value"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "value": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            },
+            "condition": {
+              "type": "string",
+              "description": "Present when the value only holds under a qualifier, which makes it not a constant."
+            }
+          }
+        },
+        "boolean": {
+          "type": "object",
+          "description": "How the documentation writes this boolean, as three raw signals. The three kinds of boolean are not collapsed into one verdict: turning them into types is a consumer's decision.",
+          "required": [
+            "type_column",
+            "pass_true_prefix",
+            "false_documented"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "type_column": {
+              "enum": [
+                "True",
+                "Boolean"
+              ],
+              "description": "True means the value only ever arrives true: the field is present or absent."
+            },
+            "pass_true_prefix": {
+              "type": "boolean",
+              "description": "The description opens with Pass True, so on an outgoing parameter false says nothing that omission does not."
+            },
+            "false_documented": {
+              "type": "boolean",
+              "description": "The description also speaks of False. Where this is true alongside pass_true_prefix the two signals disagree and the description decides."
+            }
+          }
+        },
+        "returned_only_in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Methods that are the only place this field is populated."
+        },
+        "implies_set": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Fields Telegram also populates whenever this one is populated."
+        },
+        "integer_bits": {
+          "type": "integer",
+          "description": "Significant bits the value may occupy. 52 means a 32-bit integer will silently truncate it."
+        },
+        "semantic": {
+          "enum": [
+            "unix_date"
+          ],
+          "description": "Meaning the printed type does not carry."
+        }
+      }
+    },
+    "document": {
+      "type": "object",
+      "description": "Everything the documentation states outside the tables of types and methods. No published specification carries any of it.",
+      "required": [
+        "formatting",
+        "sending_files",
+        "rates",
+        "colors",
+        "transport",
+        "command_scopes",
+        "articles",
+        "parts",
+        "ephemeral_messages",
+        "conventions"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "formatting": {
+          "$ref": "#/$defs/formatting"
+        },
+        "sending_files": {
+          "type": "object",
+          "required": [
+            "transports"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "transports": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/fileTransport"
+              }
+            }
+          }
+        },
+        "rates": {
+          "$ref": "#/$defs/rates"
+        },
+        "colors": {
+          "type": "object",
+          "required": [
+            "accent",
+            "profile_accent"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "accent": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/accentColor"
+              }
+            },
+            "profile_accent": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/accentColor"
+              }
+            }
+          }
+        },
+        "transport": {
+          "$ref": "#/$defs/transport"
+        },
+        "command_scopes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/commandScopeChain"
+          }
+        },
+        "articles": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/article"
+          },
+          "description": "Every prose section of the page, verbatim and structured. The floor under every extractor above: what no extractor reads is still here."
+        },
+        "parts": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/part"
+          }
+        },
+        "ephemeral_messages": {
+          "$ref": "#/$defs/ephemeralMessages"
+        },
+        "conventions": {
+          "$ref": "#/$defs/conventions"
+        }
+      }
+    },
+    "formatting": {
+      "type": "object",
+      "required": [
+        "entity_nesting",
+        "date_time",
+        "modes",
+        "rich",
+        "mention_link",
+        "syntax_highlighting"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "entity_nesting": {
+          "type": "object",
+          "description": "The restrictions that decide whether two message entities may overlap. This is the specification of a validator.",
+          "required": [
+            "text",
+            "rules"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "rules": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "date_time": {
+          "type": "object",
+          "required": [
+            "pattern",
+            "empty",
+            "controls"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "pattern": {
+              "type": "string",
+              "description": "The regular expression a format string must match."
+            },
+            "empty": {
+              "type": "string"
+            },
+            "controls": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "character",
+                  "meaning"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "character": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1
+                  },
+                  "meaning": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "modes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/parseMode"
+          },
+          "description": "Keyed by the value of parse_mode that selects the mode."
+        },
+        "rich": {
+          "$ref": "#/$defs/richFormatting"
+        },
+        "mention_link": {
+          "type": "object",
+          "required": [
+            "scheme",
+            "rules"
+          ],
+          "additionalProperties": false,
+          "description": "Mentioning a user by identifier rather than by username. The scheme works in exactly two places and the rules say which.",
+          "properties": {
+            "scheme": {
+              "type": "string"
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "syntax_highlighting": {
+          "type": "object",
+          "required": [
+            "languages_url"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "languages_url": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        }
+      }
+    },
+    "parseMode": {
+      "type": "object",
+      "required": [
+        "parse_mode",
+        "anchor",
+        "syntax",
+        "notes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "parse_mode": {
+          "type": "string"
+        },
+        "anchor": {
+          "type": "string"
+        },
+        "legacy": {
+          "type": "boolean"
+        },
+        "syntax": {
+          "type": "string",
+          "description": "The syntax sample, verbatim and with its line breaks."
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "escaping": {
+          "$ref": "#/$defs/escaping"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tagAlias"
+          }
+        },
+        "tag_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "named_entities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "numeric_entities": {
+          "type": "boolean"
+        },
+        "nesting_allowed": {
+          "type": "boolean"
+        },
+        "unsupported_entities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vocabulary": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/tagVocabulary"
+          }
+        },
+        "code_language": {
+          "$ref": "#/$defs/codeLanguage"
+        },
+        "custom_emoji": {
+          "$ref": "#/$defs/customEmoji"
+        }
+      }
+    },
+    "escaping": {
+      "type": "object",
+      "description": "The complete escaping contract of a parse mode.",
+      "required": [
+        "escape_character",
+        "always"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "escape_character": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1
+        },
+        "escapable_codes": {
+          "type": "object",
+          "description": "The range of character codes that may be escaped anywhere.",
+          "required": [
+            "from",
+            "to"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "from": {
+              "type": "integer"
+            },
+            "to": {
+              "type": "integer"
+            }
+          }
+        },
+        "always": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Characters that must be escaped wherever no narrower rule applies."
+        },
+        "contexts": {
+          "type": "array",
+          "description": "Rules that replace the general one inside a particular construct.",
+          "items": {
+            "type": "object",
+            "required": [
+              "inside",
+              "characters"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "inside": {
+                "type": "string"
+              },
+              "characters": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "ambiguity": {
+          "type": "object",
+          "description": "How a sequence that could open two different entities is resolved, and what to insert to force the other reading.",
+          "required": [
+            "sequence",
+            "resolved_as",
+            "separator",
+            "text"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "sequence": {
+              "type": "string"
+            },
+            "resolved_as": {
+              "type": "string"
+            },
+            "separator": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "tagAlias": {
+      "type": "object",
+      "description": "A run of tags that all produce the same thing.",
+      "required": [
+        "label",
+        "tags"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "attributes": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "An empty value is an attribute written without one, such as blockquote expandable."
+              }
+            }
+          }
+        }
+      }
+    },
+    "fileTransport": {
+      "type": "object",
+      "required": [
+        "by",
+        "text"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "by": {
+          "enum": [
+            "file_id",
+            "url",
+            "multipart"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "limits": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "kind",
+              "megabytes"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "photo",
+                  "other"
+                ]
+              },
+              "megabytes": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "numericLimit": {
+      "type": "object",
+      "required": [
+        "value",
+        "unit",
+        "text"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "statedNumber": {
+      "type": "object",
+      "required": [
+        "value",
+        "unit",
+        "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        }
+      }
+    },
+    "rates": {
+      "type": "object",
+      "required": [
+        "paid_broadcasts",
+        "ephemeral_messages",
+        "updates",
+        "local_bot_api_server",
+        "paid_broadcast_charging"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "paid_broadcasts": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/statedNumber"
+          }
+        },
+        "ephemeral_messages": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/statedNumber"
+          }
+        },
+        "updates": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/statedNumber"
+          }
+        },
+        "local_bot_api_server": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "text"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "unit"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "unit": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "paid_broadcast_charging": {
+          "type": "object",
+          "required": [
+            "successful_only",
+            "text"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "successful_only": {
+              "type": "boolean"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "accentColor": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "light": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9A-F]{6}$"
+          }
+        },
+        "dark": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9A-F]{6}$"
+          }
+        },
+        "name": {
+          "type": "string",
+          "description": "Present for an identifier whose colour the app theme decides."
+        },
+        "customizable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "transport": {
+      "type": "object",
+      "required": [
+        "url_template",
+        "content_types",
+        "response_envelope",
+        "rules",
+        "requires_https",
+        "webhook_reply"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "url_template": {
+          "type": "string"
+        },
+        "content_types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "response_envelope": {
+          "type": "array",
+          "description": "The envelope every answer arrives in. Described in prose and never as a type.",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "type",
+              "always"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "always": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requires_https": {
+          "type": "boolean"
+        },
+        "webhook_reply": {
+          "type": "object",
+          "description": "A bot may answer the webhook request with a Bot API call, saving a round trip. The result of such a call cannot be observed.",
+          "required": [
+            "method_field",
+            "content_types",
+            "result_available",
+            "text"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "method_field": {
+              "type": "string"
+            },
+            "content_types": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "result_available": {
+              "type": "boolean"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "commandScopeChain": {
+      "type": "object",
+      "description": "The order in which command scopes are searched for one kind of chat. The first scope that is set wins.",
+      "required": [
+        "chats",
+        "steps"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "chats": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "scope",
+              "language_code"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "scope": {
+                "type": "string"
+              },
+              "language_code": {
+                "type": "boolean"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "block": {
+      "type": "object",
+      "description": "One block of documentation prose, kept in three representations because different readers need different ones.",
+      "required": [
+        "tag",
+        "text",
+        "html"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tag": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "html": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "html_items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "article": {
+      "type": "object",
+      "required": [
+        "anchor",
+        "group",
+        "title",
+        "blocks"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/block"
+          }
+        },
+        "subsections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "anchor",
+              "title",
+              "blocks"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "anchor": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "blocks": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/block"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "part": {
+      "type": "object",
+      "required": [
+        "anchor",
+        "title",
+        "blocks"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/block"
+          }
+        }
+      }
+    },
+    "changelogEntry": {
+      "type": "object",
+      "required": [
+        "version",
+        "date",
+        "anchor",
+        "groups"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "anchor": {
+          "type": "string"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "title",
+              "changes"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Telegram's own caption. Empty for a list the page left uncaptioned."
+              },
+              "changes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tagVocabulary": {
+      "type": "object",
+      "description": "What a tag carries, read off the samples that demonstrate it.",
+      "required": [
+        "attributes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "attributes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "demonstrated_values": {
+          "type": "object",
+          "description": "Values the samples actually show, for the attributes whose value selects a behaviour. A floor, not a closed set: the documentation demonstrates rather than declares.",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "codeLanguage": {
+      "type": "object",
+      "required": [
+        "via",
+        "class_prefix",
+        "standalone_supported"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "via": {
+          "type": "string"
+        },
+        "class_prefix": {
+          "type": "string"
+        },
+        "standalone_supported": {
+          "type": "boolean"
+        }
+      }
+    },
+    "customEmoji": {
+      "type": "object",
+      "required": [
+        "fallback_required",
+        "availability"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fallback_required": {
+          "type": "boolean"
+        },
+        "availability": {
+          "type": "string"
+        }
+      }
+    },
+    "richFormatting": {
+      "type": "object",
+      "description": "Rich messages: the largest block of prose on the page and the one no published specification carries.",
+      "required": [
+        "anchor",
+        "auto_detected_entities",
+        "skip_entity_detection",
+        "upload_links",
+        "limits",
+        "modes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "type": "string"
+        },
+        "auto_detected_entities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Entity kinds Telegram finds without being asked."
+        },
+        "skip_entity_detection": {
+          "type": "string",
+          "description": "The field that turns automatic detection off."
+        },
+        "upload_links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "scheme",
+              "kind"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "scheme": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "limits": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/numericLimit"
+          }
+        },
+        "modes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/richMode"
+          },
+          "description": "Keyed by the field of InputRichMessage the content is written in."
+        }
+      }
+    },
+    "richMode": {
+      "type": "object",
+      "required": [
+        "field",
+        "anchor",
+        "samples",
+        "tag_names",
+        "vocabulary",
+        "notes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "anchor": {
+          "type": "string"
+        },
+        "samples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The syntax samples, verbatim and with their line breaks."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tagAlias"
+          }
+        },
+        "tag_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vocabulary": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/tagVocabulary"
+          }
+        },
+        "draft_only_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags usable only while streaming a draft."
+        },
+        "named_entities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "numeric_entities": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ephemeralMessages": {
+      "type": "object",
+      "description": "How an ephemeral message is addressed. None of it is in a table: the identifiers are ordinary optional fields and only the prose says that supplying neither is an error.",
+      "required": [
+        "anchor",
+        "reply_window_seconds",
+        "targets",
+        "receiver_field",
+        "command_field",
+        "administrator_exemption",
+        "delivery_guaranteed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "type": "string"
+        },
+        "reply_window_seconds": {
+          "type": "integer"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "field",
+              "source"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "field": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "receiver_field": {
+          "type": "string"
+        },
+        "command_field": {
+          "type": "string"
+        },
+        "administrator_exemption": {
+          "type": "boolean"
+        },
+        "administrator_exemption_text": {
+          "type": "string"
+        },
+        "delivery_guaranteed": {
+          "const": false
+        }
+      }
+    },
+    "conventions": {
+      "type": "object",
+      "description": "Rules the documentation states once, in passing, above a part of the page. Each governs every call in that part and none of them is in any table.",
+      "required": [
+        "integers",
+        "optional_fields",
+        "token",
+        "update_delivery",
+        "message_editing",
+        "inline_mode",
+        "repeated_statements",
+        "games"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "integers": {
+          "type": "object",
+          "required": [
+            "bits",
+            "signed",
+            "unless_noted",
+            "text"
+          ],
+          "additionalProperties": false,
+          "description": "How wide a plain Integer is. Individual fields override it; see fields.*.integer_bits.",
+          "properties": {
+            "bits": {
+              "type": "integer"
+            },
+            "signed": {
+              "type": "boolean"
+            },
+            "unless_noted": {
+              "type": "boolean"
+            },
+            "text": {
+              "type": "string",
+              "description": "The sentence it was read from."
+            }
+          }
+        },
+        "optional_fields": {
+          "type": "object",
+          "required": [
+            "may_be_absent",
+            "text"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "may_be_absent": {
+              "type": "boolean"
+            },
+            "text": {
+              "type": "string",
+              "description": "The sentence it was read from."
+            }
+          }
+        },
+        "token": {
+          "type": "object",
+          "description": "The shape of an authentication token, read off the one example the documentation gives. It states no grammar, so neither does this.",
+          "required": [
+            "example",
+            "separator",
+            "parts",
+            "derived_from_example"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "example": {
+              "type": "string"
+            },
+            "separator": {
+              "type": "string"
+            },
+            "parts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "example",
+                  "characters",
+                  "length"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "example": {
+                    "type": "string"
+                  },
+                  "characters": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Character classes present in the example, not a declared grammar."
+                  },
+                  "length": {
+                    "type": "integer"
+                  }
+                }
+              }
+            },
+            "derived_from_example": {
+              "const": true
+            }
+          }
+        },
+        "update_delivery": {
+          "type": "object",
+          "required": [
+            "methods",
+            "mutually_exclusive",
+            "retention_hours",
+            "text"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "methods": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "mutually_exclusive": {
+              "type": "boolean"
+            },
+            "retention_hours": {
+              "type": "integer"
+            },
+            "text": {
+              "type": "string",
+              "description": "The sentence it was read from."
+            }
+          }
+        },
+        "message_editing": {
+          "type": "object",
+          "required": [
+            "editable_reply_markup",
+            "text"
+          ],
+          "additionalProperties": false,
+          "description": "Which messages can be edited at all: those with no reply markup, or with an inline keyboard.",
+          "properties": {
+            "editable_reply_markup": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "text": {
+              "type": "string",
+              "description": "The sentence it was read from."
+            }
+          }
+        },
+        "inline_mode": {
+          "type": "object",
+          "required": [
+            "enabled_by",
+            "via",
+            "text"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled_by": {
+              "type": "string"
+            },
+            "via": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string",
+              "description": "The sentence it was read from."
+            }
+          }
+        },
+        "repeated_statements": {
+          "type": "array",
+          "description": "Sentences the page states in more than one section, recorded once with every address. Detected by comparison, not asserted.",
+          "items": {
+            "type": "object",
+            "required": [
+              "text",
+              "sections"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "sections": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "games": {
+          "type": "object",
+          "description": "How a game is created, and the rule that the first button of the first row must launch it \u2014 stated nowhere near sendGame.",
+          "required": [
+            "enabled_by",
+            "via",
+            "first_button_launches_game",
+            "text"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled_by": {
+              "type": "string"
+            },
+            "via": {
+              "type": "string"
+            },
+            "first_button_launches_game": {
+              "type": "boolean"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+name: promote
+
+# Opens the dev -> main pull request. Merging it publishes new bytes at the raw
+# URLs and triggers `release`.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Check there is anything to promote
+        id: diff
+        run: |
+          git fetch origin main
+          if git diff --quiet origin/main..HEAD; then
+            echo "::notice::dev and main are identical, nothing to promote"
+            echo "ahead=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ahead=true" >> "$GITHUB_OUTPUT"
+            echo "version=$(sed -n 's/^BOT_API_VERSION=//p' VERSION)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open the release pull request
+        if: steps.diff.outputs.ahead == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.diff.outputs.version }}
+        run: |
+          if gh pr list --base main --head dev --state open --json number --jq 'length' | grep -qv '^0$'; then
+            echo "::notice::a dev -> main pull request is already open"
+            exit 0
+          fi
+          gh pr create --base main --head dev \
+            --title "Release Bot API $VERSION" \
+            --body "Promotes \`dev\` to \`main\`. Merging publishes new bytes at the raw URLs and triggers the release workflow, which tags \`v$VERSION.<patch>\`."
