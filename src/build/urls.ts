@@ -49,11 +49,11 @@ export async function findStrayUrls(
   const stray: StrayUrl[] = [];
 
   for (const file of files) {
-    const text = await readFile(file, 'utf8').catch(() => undefined);
-    if (text === undefined) {
+    const raw = await readFile(file, 'utf8').catch(() => undefined);
+    if (raw === undefined) {
       continue;
     }
-    for (const [url] of text.matchAll(RAW_URL)) {
+    for (const [url] of decoded(raw).matchAll(RAW_URL)) {
       if (!belongsHere(url, config.rawBaseUrl)) {
         stray.push({ file: relative(config.root, file), url });
       }
@@ -71,10 +71,22 @@ export async function findStrayUrls(
 export async function countUrls(files: readonly string[]): Promise<number> {
   let total = 0;
   for (const file of files) {
-    const text = await readFile(file, 'utf8').catch(() => undefined);
-    total += text === undefined ? 0 : [...text.matchAll(RAW_URL)].length;
+    const raw = await readFile(file, 'utf8').catch(() => undefined);
+    total += raw === undefined ? 0 : [...decoded(raw).matchAll(RAW_URL)].length;
   }
   return total;
+}
+
+/**
+ * Percent-decodes the text before scanning it.
+ *
+ * A shields.io badge carries the address it reads as a query parameter, so it
+ * arrives as `https%3A%2F%2Fraw.githubusercontent.com%2F…` and an undecoded
+ * scan walks straight past it — which is how a badge would keep pointing at the
+ * previous owner after a move, with nothing to catch it.
+ */
+function decoded(text: string): string {
+  return `${text}\n${text.replace(/%[0-9A-Fa-f]{2}/gu, (byte) => decodeURIComponent(byte))}`;
 }
 
 /**
